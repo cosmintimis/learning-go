@@ -1,3 +1,3 @@
-module github.com/cosmintimis/learning-go/tree/main/faculty-assignments/problem1
+module github.com/cosmintimis/learning-go
 
 go 1.23.2
