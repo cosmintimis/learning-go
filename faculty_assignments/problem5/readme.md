@@ -1,4 +1,4 @@
-# Problem 3: Simple parallel tasks
+# Problem 5: Parallelizing techniques
 
 ## Overview
 
