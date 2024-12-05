@@ -15,7 +15,7 @@ type Graph struct {
 	adjacencyList map[int][]int
 }
 
-func ReadGraphFromFile(filename string) (Graph, error) {
+func readGraphFromFile(filename string) (Graph, error) {
 	// Open the JSON file
 	file, err := os.Open(filename)
 	if err != nil {
@@ -188,15 +188,21 @@ func main() {
 	// res := findHamiltonianCycleClassic(graph, 0)
 	// fmt.Println("Hamiltonian Cycle Found:", res)
 	// findHamiltonianCycleParallelized(graph, 0)
-	graph, err := ReadGraphFromFile("graph_40_100.json")
+	graph, err := readGraphFromFile("graph_40_100.json")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
+	fmt.Println("Starting search using classic backtracking")
 	start := time.Now()
 	res := findHamiltonianCycleClassic(graph, 0)
 	fmt.Println("Classic:", time.Since(start))
-	fmt.Println("Hamiltonian Cycle Found:", res)
+	if res != nil {
+		fmt.Println("Hamiltonian Cycle Found:", res)
+	} else {
+		fmt.Println("No Hamiltonian Cycle Found")
+	}
+	fmt.Println("Starting search using parallelized approach")
 	start = time.Now()
 	findHamiltonianCycleParallelized(graph, 0)
 	fmt.Println("Parallelized:", time.Since(start))
