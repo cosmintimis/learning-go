@@ -95,7 +95,7 @@ Dp,q = (ap + aq) * (bp + bq)  [∀ i = 1, 2, ..., 2n-3, and ∀ p, q such that p
 
 	ci = {
 		Σ Dp,q - Σ (Dp + Dq), for odd values of i, 0 < i < 2n - 2
-		Σ Dp + Dq + Di/2, for even values of i, 0 < i < 2n - 2
+	    Σ Dp,q - Σ (Dp + Dq) + Di/2, for even values of i, 0 < i < 2n - 2
 	}
 */
 
