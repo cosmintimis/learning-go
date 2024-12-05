@@ -82,3 +82,54 @@ func generatePolynomial(degree int) Polynomial {
 	}
 	return Polynomial{coefficients, degree}
 }
+
+func createEmptyPolynomial(degree int) Polynomial {
+	coefficients := make([]float64, degree+1)
+	return Polynomial{coefficients, degree}
+}
+
+/*
+Di = ai * bi  [∀ i = 0, 1, 2, ..., n-1]
+
+Dp,q = (ap + aq) * (bp + bq)  [∀ i = 1, 2, ..., 2n-3, and ∀ p, q such that p + q = i and q > p ≥ 0]
+
+	ci = {
+		Σ Dp,q - Σ (Dp + Dq), for odd values of i, 0 < i < 2n - 2
+		Σ Dp + Dq + Di/2, for even values of i, 0 < i < 2n - 2
+	}
+*/
+
+func karatsubaUtilOddValue(pCoeff []float64, qCoeff []float64, i int) float64 {
+	sum1 := 0.0
+	sum2 := 0.0
+
+	for p := 0; p <= i; p++ {
+		q := i - p
+		if q <= p { // Ensure q > p
+			break
+		}
+
+		// Preload values to avoid repeated function calls
+		pCoeffP := getValueOfArray(pCoeff, p)
+		pCoeffQ := getValueOfArray(pCoeff, q)
+		qCoeffP := getValueOfArray(qCoeff, p)
+		qCoeffQ := getValueOfArray(qCoeff, q)
+
+		// Compute sum1 and sum2
+		sum1 += (pCoeffP + pCoeffQ) * (qCoeffP + qCoeffQ)
+		sum2 += (pCoeffP * qCoeffP) + (pCoeffQ * qCoeffQ)
+	}
+
+	return sum1 - sum2
+}
+
+func karatsubaUtilEvenValue(pCoeff []float64, qCoeff []float64, i int) float64 {
+	return karatsubaUtilOddValue(pCoeff, qCoeff, i) + getValueOfArray(pCoeff, i/2)*getValueOfArray(qCoeff, i/2)
+}
+
+func getValueOfArray(arr []float64, index int) float64 {
+	if index < 0 || index >= len(arr) {
+		return 0
+	}
+	return arr[index]
+}

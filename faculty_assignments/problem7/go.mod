@@ -2,4 +2,6 @@ module github.com/cosmintimis/learning-go/faculty_assignments/problem7
 
 go 1.23.2
 
-require github.com/proabiral/puredns/v2 v2.0.0-20240115121647-eb6a9d52cbd8
+require github.com/mnlphlp/gompi v0.4.0
+
+require github.com/JohannWeging/go-mpi v0.0.0-20140428150640-6544b0739b4f // indirect
