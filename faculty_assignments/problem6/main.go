@@ -50,7 +50,7 @@ func findHamiltonianCycleParallelized(graph Graph, startVertex int) {
 	defer cancel()
 
 	path := make([]int, numVertices)
-	visited := make(map[int]bool)
+	visited := make([]bool, numVertices)
 	for i := 0; i < numVertices; i++ {
 		path[i] = -1
 	}
@@ -77,7 +77,7 @@ func findHamiltonianCycleParallelized(graph Graph, startVertex int) {
 	}
 }
 
-func search(graph Graph, numVertices int, pos int, path []int, visited map[int]bool, resultChan chan []int, ctx context.Context, wg *sync.WaitGroup) {
+func search(graph Graph, numVertices int, pos int, path []int, visited []bool, resultChan chan []int, ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 	select {
 	case <-ctx.Done():
@@ -99,14 +99,9 @@ func search(graph Graph, numVertices int, pos int, path []int, visited map[int]b
 
 	for v := 0; v < numVertices; v++ {
 		if isValidV2(graph, v, pos, path, visited) {
-			// Clone visited map to avoid concurrent modifications
-			visitedClone := make(map[int]bool)
-			for key, val := range visited {
-				visitedClone[key] = val
-			}
+			visitedClone := append([]bool{}, visited...)
 			visitedClone[v] = true
-			newPath := make([]int, numVertices)
-			copy(newPath, path)
+			newPath := append([]int{}, path...)
 			newPath[pos] = v
 			wg.Add(1)
 			go search(graph, numVertices, pos+1, newPath, visitedClone, resultChan, ctx, wg)
@@ -115,7 +110,7 @@ func search(graph Graph, numVertices int, pos int, path []int, visited map[int]b
 
 }
 
-func isValidV2(graph Graph, v int, pos int, path []int, visited map[int]bool) bool {
+func isValidV2(graph Graph, v int, pos int, path []int, visited []bool) bool {
 	// Check if this vertex is adjacent to the previous vertex in the path
 	if !contains(graph.adjacencyList[path[pos-1]], v) {
 		return false
