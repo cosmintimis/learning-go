@@ -193,7 +193,7 @@ func main() {
 	// res := findHamiltonianCycleClassic(graph, 0)
 	// fmt.Println("Hamiltonian Cycle Found:", res)
 	// findHamiltonianCycleParallelized(graph, 0)
-	graph, err := ReadGraphFromFile("graph_50_200.json")
+	graph, err := ReadGraphFromFile("graph_40_100.json")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
