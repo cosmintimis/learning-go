@@ -121,17 +121,17 @@ func (p *Polynomial) karatsubaParallelized(q *Polynomial) *Polynomial {
 	var z0, z1, z2 *Polynomial
 	wg.Add(1)
 	go func() {
-		z0 = low1.karatsuba(&low2)
+		z0 = low1.karatsubaParallelized(&low2)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
-		z1 = low1.add(&high1).karatsuba(low2.add(&high2))
+		z1 = low1.add(&high1).karatsubaParallelized(low2.add(&high2))
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
-		z2 = high1.karatsuba(&high2)
+		z2 = high1.karatsubaParallelized(&high2)
 		wg.Done()
 	}()
 	wg.Wait()
