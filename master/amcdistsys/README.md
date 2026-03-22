@@ -10,4 +10,4 @@ Assignments from the Algorithms, Models, and Concepts in Distributed Systems cou
 
 | Folder | Topic |
 |--------|-------|
-| *Coming soon* | |
+| [homework1](homework1/) | Simple UDP Broadcast — SHA-1 verified messaging |

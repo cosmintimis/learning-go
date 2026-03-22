@@ -1,0 +1,39 @@
+Home-baked simple broadcast
+
+What to implement:
+Implement a simple broadcasting in your language of choice:
+- Communicate through UDP
+- The programs should communicate through messages having this format:
+    - Message size should be fixed: 1024 bytes
+    - Byte 0: should be the sending node index (order number)
+    - Bytes 1-1003: random values
+    - Bytes 1004-1023: SHA-1 of bytes 0-1003
+- Configuration file
+    - First line: number of broadcasts sent by each node
+    - Remaining lines: IP PORT
+    - Example:
+      1000
+      127.0.0.1 5000    # index 0
+      127.0.0.1 5001    # index 1
+      127.0.0.1 5002    # index 2
+      127.0.0.1 5003    # index 3
+      127.0.0.1 5004    # index 4
+- Program arguments: config file path and node index
+    - bcastnode config.txt 3
+- Starting script arguments: config file, first node index, last node index
+    - startnodes.sh config.txt 10 14
+- Every broadcast should be sent to the source as well
+- Every node should log all the messages received
+    - First element: OK or FAIL depending on whether the sent SHA1 matches the calculated SHA1
+    - Second element: source node index
+    - Third element: the sent SHA1 (last 20 bytes of the message displayed as HEX)
+    - Forth element: the calculated SHA1 of the message
+    - Example
+      OK 1 0123456789abcdef0123456789abcdef01234567 0123456789abcdef0123456789abcdef01234567
+      OK 2 0123456789abcdef0123456789abcdef01234567 0123456789abcdef0123456789abcdef01234567
+      FAIL 0 0123456789abcdef0123456789abcdef01234567 0123456789abcdef0123456789abcdef01234aaa
+- Log any errors in a separate file
+- All nodes should start within 10 seconds
+- All nodes should wait 15 seconds after startup before starting broadcasting
+- A node should stop after sending N broadcasts and receiving N*M broadcasts (in the configuration file example M=5, N=1000)
+- Message reading/writing should insist until all the expected message size is read/written, but no longer than 5 seconds
