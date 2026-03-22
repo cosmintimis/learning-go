@@ -1,4 +1,4 @@
-module github.com/cosmintimis/learning-go/faculty_assignments/problem7
+module github.com/cosmintimis/learning-go/bachelor/pdp/problem7
 
 go 1.23.2
 
