@@ -1,3 +1,5 @@
 # Build artifacts
 *.exe
-*.log
+
+# Runtime logs
+logs/
