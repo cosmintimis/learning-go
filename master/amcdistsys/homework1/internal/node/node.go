@@ -68,14 +68,14 @@ func (n *Node) Run() {
 
 	// 3. Start sender
 	fmt.Printf("Node %d: starting broadcasts (N=%d, M=%d, total_expected=%d)\n", n.index, N, M, total)
-	go n.sendLoop(ctx, &wg, N, cancel)
+	go n.sendLoop(&wg, N, cancel)
 
 	wg.Wait()
 	fmt.Printf("Node %d: done\n", n.index)
 }
 
 // sendLoop sends N broadcasts to all M nodes (including self), then signals completion via cancel.
-func (n *Node) sendLoop(ctx context.Context, wg *sync.WaitGroup, N int, cancel context.CancelFunc) {
+func (n *Node) sendLoop(wg *sync.WaitGroup, N int, cancel context.CancelFunc) {
 	defer wg.Done()
 	defer cancel() // signal receiver that all sends are done
 
