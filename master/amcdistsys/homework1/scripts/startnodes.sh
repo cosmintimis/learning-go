@@ -30,7 +30,7 @@ pids=()
 for idx in $(seq "$FIRST" "$LAST"); do
     "$BINARY" "$CONFIG" "$idx" &
     pids+=($!)
-    echo "Started node $idx (pid ${pids[-1]})"
+    echo "Started node $idx (pid $!)"
 done
 
 echo "All nodes launched. Waiting for completion..."

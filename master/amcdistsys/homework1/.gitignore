@@ -1,5 +1,6 @@
 # Build artifacts
 *.exe
+bcastnode
 
 # Runtime logs
 logs/

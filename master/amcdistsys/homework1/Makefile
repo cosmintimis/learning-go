@@ -30,7 +30,7 @@ clean:
 	$(RM) $(BINARY)
 
 ## Run nodes (usage: make run CONFIG=config.txt FIRST=0 LAST=2)
-run: build
+run:
 ifeq ($(OS),Windows_NT)
 	powershell -File scripts/startnodes.ps1 $(CONFIG) $(FIRST) $(LAST)
 else
