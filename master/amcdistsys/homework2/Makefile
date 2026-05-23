@@ -12,7 +12,9 @@ RESULTS_DIR := results
 CLEAN_LOG := $(RESULTS_DIR)/clean.txt
 PARTITION_LOG := $(RESULTS_DIR)/partition.txt
 
-.PHONY: all build test test-clean test-partition results clean
+.PHONY: all build test test-clean test-partition results serve clean
+
+SERVE_PORT ?= 8080
 
 all: build
 
@@ -57,6 +59,10 @@ results:
 			echo "no Maelstrom run found under store/"; exit 1; \
 		fi; \
 	fi
+
+# Serve the Jepsen/Maelstrom results web UI on http://localhost:$(SERVE_PORT)/
+serve:
+	java -jar $(MAELSTROM_JAR) serve --port $(SERVE_PORT)
 
 clean:
 	rm -rf bin store $(RESULTS_DIR)
