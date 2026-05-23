@@ -1,0 +1,24 @@
+Reliable Broadcast algorithm with Jepsen Maelstrom
+- implement algorithm 3.2 on page 78 of the book using Jepsen Maelstrom https://github.com/jepsen-io/maelstrom
+- Crash-stop nodes (fail-stop model)
+- Process architecture
+  - have a global event queue
+  - one thread (main?) reading from standard input messages and adding to the event queue
+  - one thread (event processor) takes events from the queue one by one and handles them
+  - no events are processed concurrently
+  - a timer that puts a timeout event in the queue for PFD
+  - a message is an event carrier between processes
+  - events are nestable
+
+- Abstraction stack
+      APP     rbBcast(7)                               APP                                              app
+       |                                                | 
+      RB      bebBcast(rbData(self,7))                 RB      rbDeliver(p,7)                           app.rb
+     /  \                                             /  \
+   PFD   BEB  plSend(q,bebBcast(rbData(self,7)))    PFD  BEB   bebDeliver(p,rbData(self,7))             app.rb.pfd, app.rb.beb
+    |     |                                          |    |
+    PL    PL  serialize to STDOUT                    PL   PL   plDeliver(p,bebBcast(rbData(self,7)))    app.rb.pfd.pl, app.rb.beb.pl
+    
+- PL doesn't need to be implemented as shown in the book. It just reads messages from STDIN
+  and writes message sto STDOUT
+- the message broadcasted will be a number
