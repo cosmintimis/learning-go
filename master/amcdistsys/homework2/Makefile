@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 	BINARY := bin/node.exe
 endif
 
-.PHONY: all build test test-clean test-clean-verbose test-partition test-partition-verbose results serve clean
+.PHONY: all build test test-clean test-clean-verbose test-partition test-partition-verbose test-kill test-kill-verbose results serve clean
 
 all: build
 
@@ -60,6 +60,29 @@ test-partition-verbose: build
 		--rate $(RATE) \
 		--nemesis partition \
 		--nemesis-interval 5
+
+# Crash-stop nemesis: kills one node permanently. This is the fault model
+# Algorithm 3.2 is actually specified for (fail-stop, no recovery).
+test-kill: build
+	java -jar $(MAELSTROM_JAR) test \
+		--workload broadcast \
+		--bin ./$(BINARY) \
+		--node-count $(NODE_COUNT) \
+		--time-limit $(TIME_LIMIT) \
+		--rate $(RATE) \
+		--nemesis kill \
+		--nemesis-interval 8
+
+test-kill-verbose: build
+	MAELSTROM_LOG_EVENTS=1 \
+	java -jar $(MAELSTROM_JAR) test \
+		--workload broadcast \
+		--bin ./$(BINARY) \
+		--node-count $(NODE_COUNT) \
+		--time-limit $(TIME_LIMIT) \
+		--rate $(RATE) \
+		--nemesis kill \
+		--nemesis-interval 8
 
 # Print just the :results block of the most recent Maelstrom run.
 results:
