@@ -17,17 +17,30 @@ import (
 
 type stderrLogger struct {
 	*log.Logger
+	verbose bool
 }
 
 func (l stderrLogger) Printf(format string, args ...any) {
 	l.Logger.Printf(format, args...)
 }
 
+func (l stderrLogger) Eventf(format string, args ...any) {
+	if !l.verbose {
+		return
+	}
+	l.Logger.Printf("[event] "+format, args...)
+}
+
 func main() {
 	timeoutMs := flag.Int("pfd-timeout-ms", 1500, "PFD heartbeat timeout in ms")
+	logEvents := flag.Bool("log-events", false, "log every algorithm event to stderr (per-node log)")
 	flag.Parse()
 
-	logger := stderrLogger{Logger: log.New(os.Stderr, "[node] ", log.LstdFlags|log.Lmicroseconds)}
+	verbose := *logEvents || os.Getenv("MAELSTROM_LOG_EVENTS") == "1"
+	logger := stderrLogger{
+		Logger:  log.New(os.Stderr, "[node] ", log.LstdFlags|log.Lmicroseconds),
+		verbose: verbose,
+	}
 
 	q := event.NewQueue(1024)
 	plLayer := pl.New("", os.Stdout, q)
@@ -115,6 +128,7 @@ func dispatch(
 			appLayer.SetSelf(parsed.NodeID)
 			appLayer.OnInit(parsed)
 			signalInitDone()
+			logger.Eventf("init: self=%s peers=%v", parsed.NodeID, parsed.NodeIDs)
 		case "topology":
 			parsed, err := app.ParseTopology(ev.From, ev.Body)
 			if err != nil {
@@ -128,6 +142,7 @@ func dispatch(
 				logger.Printf("parse broadcast: %v", err)
 				return
 			}
+			logger.Eventf("app: client %s requests broadcast %d", parsed.Msg.Src, parsed.Value)
 			q.Enqueue(appLayer.OnBroadcast(parsed))
 		case "read":
 			parsed, err := app.ParseRead(ev.From, ev.Body)
@@ -150,6 +165,7 @@ func dispatch(
 		}
 
 	case event.RBBroadcast:
+		logger.Eventf("rb: broadcast value=%d", ev.Value)
 		q.Enqueue(rbLayer.Broadcast(ev.Value))
 
 	case event.BEBBroadcast:
@@ -158,23 +174,49 @@ func dispatch(
 			logger.Printf("BEBBroadcast inner not RBData: %T", ev.Inner)
 			return
 		}
+		logger.Eventf("beb: broadcast rb_data origin=%s value=%d", data.Origin, data.Value)
 		bebLayer.Broadcast(data)
 
 	case event.BEBDeliver:
-		for _, next := range rbLayer.OnBEBDeliver(ev) {
+		out := rbLayer.OnBEBDeliver(ev)
+		if data, ok := ev.Inner.(event.RBData); ok {
+			relayed := false
+			for _, n := range out {
+				if _, isBeb := n.(event.BEBBroadcast); isBeb {
+					relayed = true
+					break
+				}
+			}
+			switch {
+			case len(out) == 0:
+				logger.Eventf("rb: dedup drop rb_data from=%s origin=%s value=%d", ev.From, data.Origin, data.Value)
+			case relayed:
+				logger.Eventf("rb: deliver+lazy-relay origin=%s value=%d (sender suspected)", data.Origin, data.Value)
+			default:
+				logger.Eventf("rb: deliver origin=%s value=%d", data.Origin, data.Value)
+			}
+		}
+		for _, next := range out {
 			q.Enqueue(next)
 		}
 
 	case event.RBDeliver:
+		logger.Eventf("app: rb-deliver from=%s value=%d", ev.From, ev.Value)
 		appLayer.OnRBDeliver(ev)
 
 	case event.Crash:
-		for _, next := range rbLayer.OnCrash(ev) {
+		out := rbLayer.OnCrash(ev)
+		logger.Eventf("rb: crash(%s) -> %d relay(s) from from[%s]", ev.Who, len(out), ev.Who)
+		for _, next := range out {
 			q.Enqueue(next)
 		}
 
 	case event.Timeout:
-		for _, next := range pfdLayer.OnTimeout() {
+		out := pfdLayer.OnTimeout()
+		for _, next := range out {
+			if c, ok := next.(event.Crash); ok {
+				logger.Eventf("pfd: suspect %s -> Crash", c.Who)
+			}
 			q.Enqueue(next)
 		}
 

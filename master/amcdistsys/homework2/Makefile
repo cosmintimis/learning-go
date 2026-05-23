@@ -3,18 +3,13 @@ MAELSTROM_JAR := ../../../../maelstrom/maelstrom/lib/maelstrom.jar
 NODE_COUNT ?= 5
 TIME_LIMIT ?= 20
 RATE ?= 10
+SERVE_PORT ?= 8080
 
 ifeq ($(OS),Windows_NT)
 	BINARY := bin/node.exe
 endif
 
-RESULTS_DIR := results
-CLEAN_LOG := $(RESULTS_DIR)/clean.txt
-PARTITION_LOG := $(RESULTS_DIR)/partition.txt
-
-.PHONY: all build test test-clean test-partition results serve clean
-
-SERVE_PORT ?= 8080
+.PHONY: all build test test-clean test-clean-verbose test-partition test-partition-verbose results serve clean
 
 all: build
 
@@ -24,18 +19,15 @@ build:
 test:
 	go test ./...
 
-$(RESULTS_DIR):
-	mkdir -p $(RESULTS_DIR)
-
-test-clean: build $(RESULTS_DIR)
+test-clean: build
 	java -jar $(MAELSTROM_JAR) test \
 		--workload broadcast \
 		--bin ./$(BINARY) \
 		--node-count $(NODE_COUNT) \
 		--time-limit $(TIME_LIMIT) \
-		--rate $(RATE) 2>&1 | tee $(CLEAN_LOG)
+		--rate $(RATE)
 
-test-partition: build $(RESULTS_DIR)
+test-partition: build
 	java -jar $(MAELSTROM_JAR) test \
 		--workload broadcast \
 		--bin ./$(BINARY) \
@@ -43,7 +35,31 @@ test-partition: build $(RESULTS_DIR)
 		--time-limit $(TIME_LIMIT) \
 		--rate $(RATE) \
 		--nemesis partition \
-		--nemesis-interval 5 2>&1 | tee $(PARTITION_LOG)
+		--nemesis-interval 5
+
+# Same as test-clean / test-partition but with per-node event tracing.
+# Each node logs every algorithm step to its own stderr (visible at
+#   store/broadcast/latest/node-logs/nX.log
+# in the Maelstrom UI). Useful for the homework demo.
+test-clean-verbose: build
+	MAELSTROM_LOG_EVENTS=1 \
+	java -jar $(MAELSTROM_JAR) test \
+		--workload broadcast \
+		--bin ./$(BINARY) \
+		--node-count $(NODE_COUNT) \
+		--time-limit $(TIME_LIMIT) \
+		--rate $(RATE)
+
+test-partition-verbose: build
+	MAELSTROM_LOG_EVENTS=1 \
+	java -jar $(MAELSTROM_JAR) test \
+		--workload broadcast \
+		--bin ./$(BINARY) \
+		--node-count $(NODE_COUNT) \
+		--time-limit $(TIME_LIMIT) \
+		--rate $(RATE) \
+		--nemesis partition \
+		--nemesis-interval 5
 
 # Print just the :results block of the most recent Maelstrom run.
 results:
@@ -65,4 +81,4 @@ serve:
 	java -jar $(MAELSTROM_JAR) serve --port $(SERVE_PORT)
 
 clean:
-	rm -rf bin store $(RESULTS_DIR)
+	rm -rf bin store
